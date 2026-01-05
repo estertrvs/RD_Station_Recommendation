@@ -7,29 +7,34 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          500: '#4f46e5', 
+          50: '#eff6ff',
+          100: '#dbeafe',
+          500: '#2563EB', 
+          600: '#1E40AF', 
         },
         accent: {
-          500: '#06b6d4', 
+          500: '#06b6d4',
+          600: '#0e7490',
         },
         surface: {
           50: '#f8fafc',
           100: '#f1f5f9',
+          200: '#e2e8f0',
         },
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui'],
       },
       spacing: {
-        '9': '2.25rem',
+        '18': '4.5rem',
       },
       borderRadius: {
         xl: '1rem',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
 };
 
