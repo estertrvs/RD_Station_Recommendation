@@ -44,7 +44,7 @@ function Form({ setRecommendations }) {
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-        <div className="bg-surface-100 rounded-xl shadow-md p-6 h-full min-h-[28rem] flex flex-col">
+        <div className="bg-surface-100 rounded-xl shadow-md p-6 h-full min-h-[20rem] flex flex-col">
           <Preferences
             preferences={preferences}
             onPreferenceChange={(selected) =>
@@ -53,7 +53,7 @@ function Form({ setRecommendations }) {
           />
         </div>
 
-        <div className="bg-surface-100 rounded-xl shadow-md p-6 h-full min-h-[28rem] flex flex-col">
+        <div className="bg-surface-100 rounded-xl shadow-md p-6 h-full min-h-[20rem] flex flex-col">
           <Features
             features={features}
             onFeatureChange={(selected) =>
