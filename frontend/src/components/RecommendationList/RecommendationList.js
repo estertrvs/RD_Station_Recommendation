@@ -2,7 +2,7 @@ import React from 'react';
 
 function RecommendationCard({ product }) {
   return (
-    <article className="bg-white rounded-xl shadow p-4 flex flex-col gap-3">
+    <article className="bg-surface-100 rounded-xl shadow-md p-6 h-full flex flex-col">
       <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
       <p className="text-sm text-gray-600">{product.category}</p>
       {product.description && (
@@ -22,11 +22,11 @@ function RecommendationCard({ product }) {
   );
 }
 
-export default function RecommendationList({ recommendations = [] }) {
+function RecommendationList({ recommendations = [] }) {
   if (!recommendations || recommendations.length === 0) {
     return (
       <div id="recommendation-list" className="mt-6 text-center text-gray-500">
-        Lista de recomendação onde vai aparecer os produtos
+        Clique em obter recomendação para ver os produtos sugeridos aqui.
       </div>
     );
   }
@@ -42,3 +42,4 @@ export default function RecommendationList({ recommendations = [] }) {
     </section>
   );
 }
+export default RecommendationList;
