@@ -1,13 +1,11 @@
-// Form.js
-
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Preferences, Features, RecommendationType } from './Fields';
 import { SubmitButton } from './SubmitButton';
 import useProducts from '../../hooks/useProducts';
 import useForm from '../../hooks/useForm';
-import useRecommendations from '../../hooks/useRecommendations';
+import recommendationService from '../../services/recommendation.service';
 
-function Form() {
+function Form({ setRecommendations }) {
   const { preferences, features, products } = useProducts();
   const { formData, handleChange } = useForm({
     selectedPreferences: [],
@@ -15,15 +13,25 @@ function Form() {
     selectedRecommendationType: '',
   });
 
-  const { getRecommendations, recommendations } = useRecommendations(products);
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    const dataRecommendations = getRecommendations(formData);
 
-    /**
-     * Defina aqui a lógica para atualizar as recomendações e passar para a lista de recomendações
-     */
+    const result = recommendationService.getRecommendations(formData, products);
+
+    let normalized = [];
+    if (!result) {
+      normalized = [];
+    } else if (Array.isArray(result)) {
+      normalized = result;
+    } else {
+      normalized = [result];
+    }
+
+    if (typeof setRecommendations === 'function') {
+      setRecommendations(normalized);
+    } else {
+      console.warn('setRecommendations não foi passado para Form', normalized);
+    }
   };
 
   return (
