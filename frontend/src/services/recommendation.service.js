@@ -1,92 +1,36 @@
-function toLowerTrim(value) {
-  return typeof value === 'string' ? value.toLowerCase().trim() : '';
-}
-
-function addToSet(set, value) {
-  if (value === undefined || value === null) return;
-  if (Array.isArray(value)) {
-    for (const v of value) {
-      const t = toLowerTrim(String(v));
-      if (t) set.add(t);
-    }
-  } else {
-    const t = toLowerTrim(String(value));
-    if (t) set.add(t);
-  }
-}
-
-function collectProductTextSet(product) {
-  const set = new Set();
-  if (!product || typeof product !== 'object') return set;
-  addToSet(set, product.preferences);
-  addToSet(set, product.features);
-  addToSet(set, product.name);
-  addToSet(set, product.category);
-  return set;
-}
+const { toLowerTrim, collectTokens } = require('../utils/recommendationHelper');
 
 function scoreProduct(product, formData = {}) {
   const prefs = Array.isArray(formData.selectedPreferences) ? formData.selectedPreferences : [];
   const feats = Array.isArray(formData.selectedFeatures) ? formData.selectedFeatures : [];
-  const tokens = collectProductTextSet(product);
-  let prefMatches = 0;
-  let featMatches = 0;
+  const tokens = collectTokens(product);
+  let prefMatches = 0, featMatches = 0;
   for (const p of prefs) {
-    const token = toLowerTrim(p);
-    if (!token) continue;
-    if (tokens.has(token)) {
-      prefMatches += 1;
-      continue;
-    }
-    for (const t of tokens) {
-      if (t.includes(token) || token.includes(t)) {
-        prefMatches += 1;
-        break;
-      }
-    }
+    const t = toLowerTrim(p); if (!t) continue;
+    if (tokens.has(t)) { prefMatches++; continue; }
+    for (const tok of tokens) { if (tok.includes(t) || t.includes(tok)) { prefMatches++; break; } }
   }
   for (const f of feats) {
-    const token = toLowerTrim(f);
-    if (!token) continue;
-    if (tokens.has(token)) {
-      featMatches += 1;
-      continue;
-    }
-    for (const t of tokens) {
-      if (t.includes(token) || token.includes(t)) {
-        featMatches += 1;
-        break;
-      }
-    }
+    const t = toLowerTrim(f); if (!t) continue;
+    if (tokens.has(t)) { featMatches++; continue; }
+    for (const tok of tokens) { if (tok.includes(t) || t.includes(tok)) { featMatches++; break; } }
   }
-  const hadPrefs = prefs.length > 0;
-  const hadFeats = feats.length > 0;
-  if (hadPrefs && hadFeats) {
-    if (prefMatches === 0 || featMatches === 0) return null;
-  } else if (hadPrefs) {
-    if (prefMatches === 0) return null;
-  } else if (hadFeats) {
-    if (featMatches === 0) return null;
-  } else {
-    return null;
-  }
+  const hadPrefs = prefs.length > 0, hadFeats = feats.length > 0;
+  if (hadPrefs && hadFeats) { if (prefMatches === 0 || featMatches === 0) return null; }
+  else if (hadPrefs) { if (prefMatches === 0) return null; }
+  else if (hadFeats) { if (featMatches === 0) return null; }
+  else return null;
   return prefMatches + featMatches;
 }
 
-function normalizeArgs(a1, a2) {
-  if (Array.isArray(a1)) return { products: a1, formData: a2 || {} };
-  if (Array.isArray(a2)) return { products: a2, formData: a1 || {} };
-  return { products: [], formData: {} };
-}
-
-function getRecommendations(arg1 = [], arg2 = {}) {
-  const { products, formData } = normalizeArgs(arg1, arg2);
+function getRecommendations(formData = {}, products = []) {
   const prodArray = Array.isArray(products) ? products : [];
   const mode = formData.selectedRecommendationType === 'SingleProduct' ? 'SingleProduct' : 'MultipleProducts';
   const limit = Number.isInteger(formData.limit) ? formData.limit : prodArray.length;
+
   const buckets = new Map();
   let maxScore = -Infinity;
-  for (let i = 0; i < prodArray.length; i += 1) {
+  for (let i = 0; i < prodArray.length; i++) {
     const p = prodArray[i];
     const s = scoreProduct(p, formData);
     if (s === null || s === undefined) continue;
@@ -98,27 +42,16 @@ function getRecommendations(arg1 = [], arg2 = {}) {
   if (mode === 'SingleProduct') {
     const candidates = buckets.get(maxScore) || [];
     let chosen = candidates[0];
-    for (const c of candidates) {
-      if (c.index > chosen.index) chosen = c;
-    }
+    for (const c of candidates) if (c.index > chosen.index) chosen = c;
     return chosen ? [chosen.product] : [];
   }
   const result = [];
-  for (let score = maxScore; score >= 0 && result.length < limit; score -= 1) {
+  for (let score = maxScore; score >= 0 && result.length < limit; score--) {
     const bucket = buckets.get(score);
     if (!bucket) continue;
-    for (let j = bucket.length - 1; j >= 0 && result.length < limit; j -= 1) {
-      result.push(bucket[j].product);
-    }
+    for (let j = bucket.length - 1; j >= 0 && result.length < limit; j--) result.push(bucket[j].product);
   }
   return result;
 }
 
-module.exports = {
-  getRecommendations,
-  scoreProduct,
-  _internals: {
-    collectProductTextSet,
-    normalizeArgs,
-  },
-};
+module.exports = { getRecommendations, scoreProduct };
