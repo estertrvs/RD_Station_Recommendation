@@ -1,0 +1,72 @@
+const mockProducts = [
+  {
+    "id": 1,
+    "name": "RD Station CRM",
+    "category": "Vendas",
+    "preferences": [
+      "Integração fácil com ferramentas de e-mail",
+      "Personalização de funis de vendas",
+      "Relatórios avançados de desempenho de vendas"
+    ],
+    "features": [
+      "Gestão de leads e oportunidades",
+      "Automação de fluxos de trabalho de vendas",
+      "Rastreamento de interações com clientes"
+    ],
+    "description": "O RD Station CRM é a solução de vendas que ajuda equipes a organizar leads, acompanhar oportunidades e automatizar processos comerciais para aumentar a produtividade.",
+    "link": "https://www.rdstation.com/crm/"
+  },
+  {
+    "id": 2,
+    "name": "RD Station Marketing",
+    "category": "Marketing",
+    "preferences": [
+      "Automação de marketing",
+      "Testes A/B para otimização de campanhas",
+      "Segmentação avançada de leads"
+    ],
+    "features": [
+      "Criação e gestão de campanhas de e-mail",
+      "Rastreamento de comportamento do usuário",
+      "Análise de retorno sobre investimento (ROI) de campanhas"
+    ],
+    "description": "O RD Station Marketing é a plataforma de automação de marketing que permite criar campanhas, segmentar leads e analisar resultados para potencializar estratégias digitais.",
+    "link": "https://www.rdstation.com/marketing/"
+  },
+  {
+    "id": 3,
+    "name": "RD Conversas",
+    "category": "Omnichannel",
+    "preferences": [
+      "Integração com chatbots",
+      "Histórico unificado de interações",
+      "Respostas automáticas e personalizadas"
+    ],
+    "features": [
+      "Gestão de conversas em diferentes canais",
+      "Chat ao vivo e mensagens automatizadas",
+      "Integração com RD Station CRM e Marketing"
+    ],
+    "description": "O RD Conversas centraliza a comunicação com clientes em múltiplos canais, oferecendo chat ao vivo, integração com chatbots e histórico unificado para melhorar o atendimento.",
+    "link": "https://www.rdstation.com/planos/conversas/"
+  },
+  {
+    "id": 4,
+    "name": "RD Mentor AI",
+    "category": "Uso de Inteligência Artificial",
+    "preferences": [
+      "Análise preditiva de dados",
+      "Recomendações personalizadas para usuários",
+      "Integração com assistentes virtuais"
+    ],
+    "features": [
+      "Análise de dados para insights estratégicos",
+      "Recomendação de ações com base em padrões",
+      "Integração de funcionalidades preditivas nos produtos RD Station"
+    ],
+    "description": "O RD Mentor AI utiliza inteligência artificial para gerar insights estratégicos, prever tendências e recomendar ações personalizadas que impulsionam resultados de marketing e vendas.",
+    "link": "https://www.rdstation.com/produtos/mentor-ia/"
+  }
+];
+
+export default mockProducts;

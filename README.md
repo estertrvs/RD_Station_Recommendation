@@ -1,102 +1,100 @@
-# Teste Técnico - Recomendador de Produtos RD Station
+# Recomendador de Produtos RD Station
 
-Este projeto é parte do teste técnico para a vaga de desenvolvedor front-end na RD Station. O objetivo principal é implementar a lógica de recomendação de produtos RD Station em uma aplicação web existente.
+Este repositório contém uma aplicação React que permite ao usuário selecionar **preferências** e **funcionalidades** e receber recomendações de produtos RD Station. O backend é simulado com **json-server**. A interface usa **Tailwind CSS** e foi estilizada com base no visual do site da RD Station: https://www.rdstation.com.
 
-## Missão
+## O que foi implementado
+- **Serviço de recomendação modular**  
+  - `recommendation.service.js` com algoritmo de pontuação, regras de empate e modos **SingleProduct** e **MultipleProducts**.  
+  - Empate em **SingleProduct**: retorna o **último** produto válido (maior índice).  
+  - **MultipleProducts**: retorna produtos ordenados por score decrescente e, em empate, pela ordem original.
 
-Sua missão é desenvolver a funcionalidade central de recomendação de produtos dentro de uma aplicação React.js pré-existente. Você deverá implementar a lógica que permite aos usuários selecionar suas preferências e funcionalidades desejadas, e então receber recomendações de produtos correspondentes.
+- **Validação e UX no formulário**  
+  - Validação visual para **Tipo de recomendação** (Produto Único / Múltiplos Produtos).  
+  - Validação visual para **pelo menos uma preferência ou funcionalidade**.  
+  - Mensagens de erro exibidas dentro das seções, em vermelho suave, centralizadas e desaparecendo após 5 segundos.  
+  - Scroll suave para a lista de recomendações após submissão.
 
-## Contexto
+- **Refatoração e componentização**  
+  - `FormSection`, `RecommendationBox`, `ErrorMessage` e componentes de campos (`Preferences`, `Features`, `RecommendationType`) para manter `Form.js` enxuto e legível.  
+  - Hook `useFormValidation` para centralizar regras de validação.
 
-Este projeto é parte de uma etapa técnica do processo seletivo para a vaga de desenvolvedor front-end na RD Station. A estrutura básica da aplicação já está construída com React.js para o front-end e utiliza json-server para simular um servidor RESTful com dados de produtos.
+- **Melhorias na interface**  
+  - Header com gradiente nas cores RD Station e logo no topo.  
+  - Tipografia e espaçamento ajustados para melhor legibilidade.  
+  - Caixas de Preferências e Funcionalidades com fundo suave (`surface-100`) para reduzir excesso de branco.  
+  - Separador visual claro entre introdução e formulário.
 
-Seu foco deve ser na implementação da lógica de recomendação e na integração desta funcionalidade com a interface do usuário existente. A aplicação já possui um layout básico utilizando Tailwind CSS.
+- **Dados do produto**  
+  - `db.json` (json-server) atualizado para incluir **description** e **link** em cada produto, permitindo exibir resumo e botão "Saiba mais" nos cards de recomendação.
 
-## Tecnologias Utilizadas
+- **Testes**  
+  - Suíte de testes unitários cobrindo: SingleProduct, MultipleProducts, empate (último válido), ausência de seleções, limites (`limit`), entradas inválidas (`undefined`), normalização (trim/case), produtos sem campos, imutabilidade do array de produtos e comportamento com muitos produtos.  
+  - Mocks realistas para cenários determinísticos (empates e ordenação).
 
-Este projeto utiliza as seguintes tecnologias principais:
+## Estrutura principal
+**Principais arquivos e pastas**
+- `src/services/recommendation.service.js` — lógica de recomendação.  
+- `src/components/Form` — formulário e subcomponentes.  
+- `src/components/RecommendationList` — exibição das recomendações.  
+- `src/mocks/mockProducts.js` — dados de teste usados nos testes unitários.  
+- `backend/db.json` — dados do json-server incrementados com `description` e `link`.  
+- `src/utils/recommendationHelper.js` — helpers de normalização e tokenização.  
+- `src/services/recommendation.service.test.js` — testes unitários.
 
-- React.js: Para o desenvolvimento do front-end
-- json-server: Para simular um servidor RESTful com dados de produtos
-- Tailwind CSS: Para estilização e layout responsivo
+## Como executar
+**Pré‑requisitos**  
+- Node.js >= 18.3
 
-## Requisitos Técnicos
+**Instalação e execução**
+```bash
+# clonar repositório
+git clone https://github.com/estertrvs/RD_Station_Recommendation.git
+cd RD_Station_Recommendation
 
-### Familiaridade com Tailwind CSS
+# instalar dependências
+yarn install
 
-O layout da aplicação foi desenvolvido utilizando Tailwind CSS. Familiaridade básica com este framework de CSS utilitário será útil para entender e potencialmente modificar o layout existente.
+# executar script de instalação (se aplicável)
+./install.sh
 
-### Versão do Node.js
+# iniciar frontend e backend (modo dev)
+yarn dev
 
-Este projeto requer Node.js versão 18.3 ou superior. Se você não tem essa versão instalada, siga as instruções abaixo para instalá-la usando `n` ou `nvm`.
+# ou iniciar apenas frontend
+yarn start:frontend
 
-#### Usando `n` (Node Version Manager):
+# ou iniciar apenas backend (json-server)
+yarn start:backend
+```
 
-1. Instale `n` globalmente (caso ainda não tenha): npm install -g n
+**Rodar testes**
+```bash
+# executar suíte de testes
+cd frontend
+yarn test
+```
 
-2. Instale e use a versão 18.3 do Node.js: n 18.3
+## Notas técnicas e decisões de implementação
+- **Complexidade**: o algoritmo avalia cada produto uma única vez e calcula score por produto — complexidade **O(n)** em relação ao número de produtos. Ordenação em `MultipleProducts` é feita apenas sobre os produtos com score > 0, minimizando custo quando poucos produtos batem.  
+- **Normalização**: entradas do usuário são normalizadas (trim e lowercase) e comparadas com tokens do produto para permitir correspondências parciais e tolerância a variações de case/espacos.  
+- **Robustez**: o serviço trata produtos sem campos `preferences`/`features`, `formData` ou `products` `undefined`, e entradas não-array.  
+- **Testabilidade**: regras de negócio isoladas em serviço facilitam testes unitários e manutenção.
 
-#### Usando `nvm` (Node Version Manager):
+## Critérios de aceite atendidos
+1. Recebe preferências via formulário.  
+2. Retorna recomendações baseadas nas preferências e funcionalidades.  
+3. **SingleProduct** retorna um produto.  
+4. **MultipleProducts** retorna lista de produtos.  
+5. Em empate, **SingleProduct** retorna o último produto válido.  
+6. Lida com diferentes tipos de preferências e features.  
+7. Serviço modular e extensível.
 
-1. Instale `nvm` (caso ainda não tenha) seguindo as instruções em: https://github.com/nvm-sh/nvm
+## Observações finais
+- O estilo visual foi inspirado no site oficial da RD Station: https://www.rdstation.com. A logo usada no header é a mesma fonte pública do site.
+- Pequenas melhorias no `db.json` foram feitas para enriquecer os cards de recomendação com **description** e **link**. 
 
-2. Instale e use a versão 18.3 do Node.js: nvm install 18.3 & nvm use 18.3
-
-Após instalar a versão correta do Node.js, você pode prosseguir com a instalação das dependências do projeto e iniciar o desenvolvimento.
-
-## Foco do Desenvolvimento
-
-Para completar este teste, você deve concentrar-se principalmente em três arquivos específicos:
-
-1. `App.js`: Neste componente, você encontrará o comentário "Dadas atualizações no formulário, necessário atualizar a lista de recomendações". Implemente a lógica necessária para atualizar a lista de recomendações com base nas entradas do usuário.
-
-2. `Form.js`: Este componente contém o comentário "Defina aqui a lógica para atualizar as recomendações e passar para a lista de recomendações". Desenvolva a lógica para processar as entradas do usuário e gerar as recomendações apropriadas.
-
-3. `recommendation.service.js`: Neste arquivo de serviço, você verá o comentário "Crie aqui a lógica para retornar os produtos recomendados." Implemente a lógica de negócios para determinar quais produtos devem ser recomendados com base nos critérios fornecidos.
-
-## Observações Adicionais
-
-- Sinta-se à vontade para implementar melhorias na cobertura de testes e no layout da aplicação, caso tenha tempo adicional.
-- O código existente serve como base para sua implementação. Concentre-se em desenvolver a funcionalidade de recomendação de produtos conforme especificado nos requisitos do projeto e nos arquivos mencionados acima.
-
-## Requisitos
-
-- Implementar a lógica de recomendação de produtos com base nas preferências do usuário.
-- Utilizar React.js para o desenvolvimento do front-end.
-- Consumir a API fornecida pelo json-server para obter os dados dos produtos.
-- Seguir as boas práticas de desenvolvimento e organização de código.
-- Implementar testes unitários para as funcionalidades desenvolvidas.
-
-## Como Executar
-
-1. Clone o repositório: `git clone <URL_DO_REPOSITORIO>`
-2. Instale as dependências: `yarn install`
-3. Para instalar o projeto, execute o script `./install.sh` 
-4. Inicie a aplicação: `yarn start`
-
-### Scripts Disponíveis
-
-- `start`: Inicia a aplicação React em modo de desenvolvimento.
-- `start:frontend`: Inicia apenas a parte frontend da aplicação em modo de desenvolvimento.
-- `start:backend`: Inicia apenas a parte backend da aplicação em modo de desenvolvimento.
-- `dev`: Inicia simultaneamente a parte frontend e backend da aplicação em modo de desenvolvimento.
-
-## Critérios de Aceite
-
-1. O serviço de recomendação de produtos deve ser capaz de receber as preferências e funcionalidades desejadas do usuário através de um formulário.
-2. O serviço deve retornar recomendações de produtos com base nas preferências e funcionalidades selecionadas pelo usuário.
-3. Se o tipo de recomendação selecionado for "SingleProduct", o serviço deve retornar apenas um produto que corresponda melhor às preferências e funcionalidades do usuário.
-4. Se o tipo de recomendação selecionado for "MultipleProducts", o serviço deve retornar uma lista de produtos que correspondam às preferências e funcionalidades do usuário.
-5. Em caso de empate na seleção de produtos com base nas preferências e funcionalidades do usuário, o serviço deve retornar o último produto que atende aos critérios de seleção.
-6. O serviço deve ser capaz de lidar com diferentes tipos de preferências e funcionalidades selecionadas pelo usuário.
-7. O serviço deve ser modular e facilmente extensível para futuras atualizações e adições de funcionalidades.
-
-Certifique-se de que todos os critérios de aceite são atendidos durante o desenvolvimento do projeto.
-
-## Autor
-
-Desenvolvido por [Seu Nome]
-
-## Licença
-
-Este projeto está licenciado sob a [Licença MIT](LICENSE).
+## Autor e contato
+- Desenvolvedora: Ester Trevisan
+- E-mail: estertrvs@gmail.com
+- LinkdIn: https://www.linkedin.com/in/estertrvs/
+- GitHub: https://github.com/estertrvs
