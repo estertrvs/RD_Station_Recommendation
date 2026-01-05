@@ -1,68 +1,65 @@
 const { toLowerTrim, collectTokens } = require('../utils/recommendationHelper');
 
-function scoreProduct(product, formData = {}) {
-  const prefs = Array.isArray(formData.selectedPreferences) ? formData.selectedPreferences : [];
-  const feats = Array.isArray(formData.selectedFeatures) ? formData.selectedFeatures : [];
+function scoreProduct(product, { selectedPreferences = [], selectedFeatures = [] }) {
   const tokens = collectTokens(product);
-  let prefMatches = 0, featMatches = 0;
 
-  for (const p of prefs) {
-    const t = toLowerTrim(p); if (!t) continue;
-    if (tokens.has(t)) { prefMatches++; continue; }
-    for (const tok of tokens) { if (tok.includes(t) || t.includes(tok)) { prefMatches++; break; } }
-  }
+  // Conta matches de uma lista de itens contra os tokens do produto
+  const countMatches = (items) => {
+    return items.reduce((count, item) => {
+      const t = toLowerTrim(item);
+      if (!t) return count;
+      if (tokens.has(t)) return count + 1;
+      for (const tok of tokens) {
+        if (tok.includes(t) || t.includes(tok)) return count + 1;
+      }
+      return count;
+    }, 0);
+  };
 
-  for (const f of feats) {
-    const t = toLowerTrim(f); if (!t) continue;
-    if (tokens.has(t)) { featMatches++; continue; }
-    for (const tok of tokens) { if (tok.includes(t) || t.includes(tok)) { featMatches++; break; } }
-  }
+  const prefMatches = countMatches(selectedPreferences);
+  const featMatches = countMatches(selectedFeatures);
 
-  const hadPrefs = prefs.length > 0, hadFeats = feats.length > 0;
-  if (hadPrefs && hadFeats) { if (prefMatches === 0 || featMatches === 0) return null; }
-  else if (hadPrefs) { if (prefMatches === 0) return null; }
-  else if (hadFeats) { if (featMatches === 0) return null; }
-  else return null;
+  // Valida se o produto atende às seleções
+  const hasPrefs = selectedPreferences.length > 0;
+  const hasFeats = selectedFeatures.length > 0;
+  if (hasPrefs && hasFeats && (prefMatches === 0 || featMatches === 0)) return null;
+  if (hasPrefs && prefMatches === 0) return null;
+  if (hasFeats && featMatches === 0) return null;
+  if (!hasPrefs && !hasFeats) return null;
 
   return prefMatches + featMatches;
 }
 
 function getRecommendations(formData = {}, products = []) {
-  const prodArray = Array.isArray(products) ? products : [];
   const mode = formData.selectedRecommendationType === 'SingleProduct' ? 'SingleProduct' : 'MultipleProducts';
-  const limit = Number.isInteger(formData.limit) ? formData.limit : prodArray.length;
+  const limit = Number.isInteger(formData.limit) ? formData.limit : products.length;
 
-  const buckets = new Map();
   let maxScore = -Infinity;
+  const scoredProducts = [];
 
-  for (let i = 0; i < prodArray.length; i++) {
-    const p = prodArray[i];
-    const s = scoreProduct(p, formData);
-    if (s === null || s === undefined) continue;
-    if (!buckets.has(s)) buckets.set(s, []);
-    buckets.get(s).push({ product: p, index: i });
-    if (s > maxScore) maxScore = s;
-  }
+  // Avalia todos os produtos e calcula score
+  products.forEach((product, index) => {
+    const score = scoreProduct(product, formData);
+    if (score !== null && score !== undefined) {
+      scoredProducts.push({ product, score, index });
+      if (score > maxScore) maxScore = score;
+    }
+  });
 
-  if (maxScore === -Infinity) return [];
+  if (scoredProducts.length === 0) return [];
 
   if (mode === 'SingleProduct') {
-    const candidates = buckets.get(maxScore) || [];
-    let chosen = candidates[0];
-    for (const c of candidates) if (c.index > chosen.index) chosen = c;
-    return chosen ? [chosen.product] : [];
+    // Seleciona o último produto com score máximo
+    const candidates = scoredProducts.filter(p => p.score === maxScore);
+    return [candidates.reduce((last, curr) => curr.index > last.index ? curr : last).product];
   }
 
-  const result = [];
-  for (let score = maxScore; score >= 0 && result.length < limit; score--) {
-    const bucket = buckets.get(score);
-    if (!bucket) continue;
-    for (let j = 0; j < bucket.length && result.length < limit; j++) {
-      result.push(bucket[j].product);
-    }
-  }
+  // Ordena por score desc e índice asc (ordem estável)
+  const sorted = scoredProducts
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(p => p.product);
 
-  return result;
+  return sorted.slice(0, limit);
 }
 
 module.exports = { getRecommendations, scoreProduct };
