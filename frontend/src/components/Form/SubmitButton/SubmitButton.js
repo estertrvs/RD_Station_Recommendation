@@ -1,7 +1,15 @@
 import React from 'react';
 
-function SubmitButton({ text }) {
-  return <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{text}</button>;
+function SubmitButton({ text, className = '', type = 'button' }) {
+  return (
+    <button
+      type={type}
+      className={`inline-flex items-center justify-center font-semibold ${className}`}
+      aria-label={text}
+    >
+      {text}
+    </button>
+  );
 }
 
 export default SubmitButton;
