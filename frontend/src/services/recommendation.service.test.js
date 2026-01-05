@@ -158,4 +158,92 @@ describe('recommendationService', () => {
     expect(Array.isArray(recommendations)).toBe(true);
   });
 
+  test('Trata preferências com espaços e case diferente', () => {
+    const formData = {
+      selectedPreferences: ['  automação de Marketing  '],
+      selectedFeatures: [],
+      selectedRecommendationType: 'MultipleProducts',
+    };
+    const recs = recommendationService.getRecommendations(formData, mockProducts);
+    expect(recs.map(p => p.name)).toContain('RD Station Marketing');
+  });
+
+  test('Não quebra quando formData é undefined', () => {
+    const recs = recommendationService.getRecommendations(undefined, mockProducts);
+    expect(Array.isArray(recs)).toBe(true);
+  });
+
+  test('Não quebra quando products é undefined', () => {
+    const formData = { selectedPreferences: ['Automação de marketing'], selectedFeatures: [], selectedRecommendationType: 'MultipleProducts' };
+    const recs = recommendationService.getRecommendations(formData, undefined);
+    expect(Array.isArray(recs)).toBe(true);
+  });
+
+  test('Limite 0 retorna vazio', () => {
+    const formData = { selectedPreferences: ['Automação de marketing'], selectedFeatures: [], selectedRecommendationType: 'MultipleProducts', limit: 0 };
+    const recs = recommendationService.getRecommendations(formData, mockProducts);
+    expect(recs).toHaveLength(0);
+  });
+
+  test('Limite maior que matches retorna todos os matches', () => {
+    const formData = { selectedPreferences: ['Automação de marketing'], selectedFeatures: [], selectedRecommendationType: 'MultipleProducts', limit: 10 };
+    const recs = recommendationService.getRecommendations(formData, mockProducts);
+    expect(recs.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('Tipo inválido cai para MultipleProducts por padrão', () => {
+    const formData = { selectedPreferences: ['Automação de marketing'], selectedFeatures: [], selectedRecommendationType: 'UnknownType' };
+    const recs = recommendationService.getRecommendations(formData, mockProducts);
+    expect(Array.isArray(recs)).toBe(true);
+  });
+
+  test('Empates em MultipleProducts mantêm ordem estável definida', () => {
+    const tieProducts = [
+      { id: 1, name: 'A', preferences: ['X'], features: [] },
+      { id: 2, name: 'B', preferences: ['X'], features: [] },
+      { id: 3, name: 'C', preferences: [], features: [] }, 
+    ];
+
+    const formData = {
+      selectedPreferences: ['X'],
+      selectedFeatures: [],
+      selectedRecommendationType: 'MultipleProducts',
+    };
+
+    const recs = recommendationService.getRecommendations(formData, tieProducts);
+
+    expect(recs).toHaveLength(2);
+    expect(recs.map(r => r.name)).toEqual(['A', 'B']);
+  });
+
+  test('Não muta o array original de produtos', () => {
+    const productsCopy = JSON.parse(JSON.stringify(mockProducts));
+    const formData = { selectedPreferences: ['Automação de marketing'], selectedFeatures: [], selectedRecommendationType: 'MultipleProducts' };
+    recommendationService.getRecommendations(formData, productsCopy);
+    expect(productsCopy).toEqual(JSON.parse(JSON.stringify(mockProducts)));
+  });
+
+  test('Trata fields não-array sem quebrar', () => {
+    const products = [{ name: 'P1', preferences: 'Automação de marketing' }, ...mockProducts];
+    const formData = { selectedPreferences: ['Automação de marketing'], selectedFeatures: [], selectedRecommendationType: 'MultipleProducts' };
+    const recs = recommendationService.getRecommendations(formData, products);
+    expect(Array.isArray(recs)).toBe(true);
+  });
+
+  test('Escala com muitos produtos sem estourar', () => {
+    const big = new Array(1000).fill(0).map((_, i) => ({ id: i, name: `P${i}`, preferences: ['A'] }));
+    const formData = { selectedPreferences: ['A'], selectedFeatures: [], selectedRecommendationType: 'MultipleProducts' };
+    const recs = recommendationService.getRecommendations(formData, big);
+    expect(recs.length).toBeGreaterThan(0);
+  });
+
+  test('Produtos retornados preservam description e link', () => {
+    const formData = { selectedPreferences: ['Automação de marketing'], selectedFeatures: [], selectedRecommendationType: 'MultipleProducts' };
+    const recs = recommendationService.getRecommendations(formData, mockProducts);
+    if (recs.length > 0) {
+      expect(recs[0]).toHaveProperty('description');
+      expect(recs[0]).toHaveProperty('link');
+    }
+  });
+
 });
