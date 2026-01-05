@@ -2,16 +2,22 @@ import React from 'react';
 
 function RecommendationCard({ product }) {
   return (
-    <article className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+    <article className="bg-white rounded-xl shadow p-4 flex flex-col gap-3">
       <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
       <p className="text-sm text-gray-600">{product.category}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {product.features?.map((f, i) => (
-          <span key={i} className="text-xs bg-surface-100 text-gray-700 px-2 py-1 rounded">
-            {f}
-          </span>
-        ))}
-      </div>
+      {product.description && (
+        <p className="text-sm text-gray-700">{product.description}</p>
+      )}
+      {product.link && (
+        <a
+          href={product.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+        >
+          Saiba mais
+        </a>
+      )}
     </article>
   );
 }
@@ -26,7 +32,10 @@ export default function RecommendationList({ recommendations = [] }) {
   }
 
   return (
-    <section id="recommendation-list" className="mt-6 grid grid-cols-1 gap-4">
+    <section
+      id="recommendation-list"
+      className="mt-6 grid grid-cols-1 gap-4"
+    >
       {recommendations.map((r) => (
         <RecommendationCard key={r.id || r.name} product={r} />
       ))}
