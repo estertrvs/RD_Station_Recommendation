@@ -80,4 +80,82 @@ describe('recommendationService', () => {
     expect(recommendations).toHaveLength(1);
     expect(recommendations[0].name).toBe('RD Conversas');
   });
+
+  test('Retorna vazio quando nenhuma preferência ou feature é selecionada', () => {
+    const formData = {
+      selectedPreferences: [],
+      selectedFeatures: [],
+      selectedRecommendationType: 'MultipleProducts',
+    };
+
+    const recommendations = recommendationService.getRecommendations(formData, mockProducts);
+
+    expect(recommendations).toHaveLength(0);
+  });
+
+  test('Retorna produtos corretos quando apenas preferências são selecionadas', () => {
+    const formData = {
+      selectedPreferences: ['Automação de marketing'],
+      selectedFeatures: [],
+      selectedRecommendationType: 'MultipleProducts',
+    };
+
+    const recommendations = recommendationService.getRecommendations(formData, mockProducts);
+
+    expect(recommendations.map(p => p.name)).toContain('RD Station Marketing');
+  });
+
+  test('Retorna produtos corretos quando apenas features são selecionadas', () => {
+    const formData = {
+      selectedPreferences: [],
+      selectedFeatures: ['Rastreamento de interações com clientes'],
+      selectedRecommendationType: 'MultipleProducts',
+    };
+
+    const recommendations = recommendationService.getRecommendations(formData, mockProducts);
+
+    expect(recommendations.map(p => p.name)).toContain('RD Station CRM');
+  });
+
+  test('Retorna vazio quando não há produtos que atendem às seleções', () => {
+    const formData = {
+      selectedPreferences: ['Preferência inexistente'],
+      selectedFeatures: ['Feature inexistente'],
+      selectedRecommendationType: 'MultipleProducts',
+    };
+
+    const recommendations = recommendationService.getRecommendations(formData, mockProducts);
+
+    expect(recommendations).toHaveLength(0);
+  });
+
+  test('Respeita o limite em MultipleProducts', () => {
+    const formData = {
+      selectedPreferences: ['Automação de marketing', 'Integração fácil com ferramentas de e-mail'],
+      selectedFeatures: ['Rastreamento de interações com clientes', 'Rastreamento de comportamento do usuário'],
+      selectedRecommendationType: 'MultipleProducts',
+      limit: 1,
+    };
+
+    const recommendations = recommendationService.getRecommendations(formData, mockProducts);
+
+    expect(recommendations).toHaveLength(1);
+  });
+
+  test('Não quebra quando produto não possui campos de features ou preferences', () => {
+    const products = [
+      { name: 'Produto sem campos' },
+      ...mockProducts,
+    ];
+    const formData = {
+      selectedPreferences: ['Automação de marketing'],
+      selectedFeatures: [],
+      selectedRecommendationType: 'MultipleProducts',
+    };
+
+    const recommendations = recommendationService.getRecommendations(formData, products);
+
+    expect(Array.isArray(recommendations)).toBe(true);
+  });
+
 });
